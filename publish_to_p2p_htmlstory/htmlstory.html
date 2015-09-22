@@ -1,0 +1,62 @@
+{# 
+ # This template has no <head> or <body> tags.  This content gets 
+ # put somewhere inside the <body> tag
+ #}
+{% block container %}
+{% block content %}
+<div class="chatter">
+    {{ chatter|markdown }}
+</div>
+{% include "_map.html" %}
+{% include "_table.html" %}
+{{ sourceline|markdown }}
+{% endblock content %}
+{% endblock container %}
+
+{% block library_scripts %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
+{% endblock %}
+
+{% block scripts %}
+{# 
+ # We reference this script with the full URL since the domain and path will
+ # be different on chicagotribune.com than where it gets published on S3.
+ #}
+<script src="//{{ ROOT_URL }}/js/jquery.tablemap.min.js"></script>
+<script>
+$(function() {
+  // Add the CSS files to the head dynamically with JavaScript.
+  // You might be tempted to just through the <link> tags into the
+  // template, but the HTML spec says they have to go in the head
+  // and we can't do this when the page is initially rendered in
+  // NGUX.
+  var CSS = [
+    '//cdn.datatables.net/1.10.9/css/jquery.dataTables.min.css',
+    '//cdn.leafletjs.com/leaflet-0.7.5/leaflet.css',
+    '//{{ ROOT_URL }}/css/styles.css'
+  ];
+
+  $.each(CSS, function(i, url) {
+    $('head').append('<link rel="stylesheet" href="' + url + '">');
+  });
+
+  $('#pumpkin-patches').tablemap({
+    mapContainer: 'map',
+    markerOptions: {
+      fillColor: '#d95700'
+    },
+    popupContent: function(feature) {
+      return '<a href="#' + feature.properties.id + '">' +
+             feature.properties.name +
+             '</a>';
+    },
+    paging: false,
+    placeholderText: '{{ table_search_placeholder|safe }}',
+    header: $('header').first(),
+    breakpoint: {{ TABLEMAP_BREAKPOINT }}
+  });
+});
+</script>
+{% endblock scripts %}
